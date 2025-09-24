@@ -1,0 +1,81 @@
+ import tkinter as tk
+    2 from tkinter import messagebox
+    3 import random
+    4
+    5 class PuzzleGame:
+    6     def __init__(self, master):
+    7         self.master = master
+    8         self.master.title("拼圖小遊戲")
+    9         self.size = 3
+   10         self.tiles = []
+   11         self.buttons = []
+   12         self.empty_tile = (self.size - 1, self.size - 1)
+   13         self.create_tiles()
+   14         self.create_ui()
+   15         self.shuffle_tiles()
+   16
+   17     def create_tiles(self):
+   18         self.tiles = [[self.size * r + c + 1 for c in range(self.size)] for r in range(self.size)]
+   19         self.tiles[self.size-1][self.size-1] = None  # 最後一格是空的
+   20
+   21     def create_ui(self):
+   22         for r in range(self.size):
+   23             row = []
+   24             for c in range(self.size):
+   25                 btn = tk.Button(self.master, font=("Arial", 24), width=4, height=2,
+   26                                 command=lambda row=r, col=c: self.move_tile(row, col))
+   27                 btn.grid(row=r, column=c)
+   28                 row.append(btn)
+   29             self.buttons.append(row)
+   30         self.update_ui()
+   31
+   32     def update_ui(self):
+   33         for r in range(self.size):
+   34             for c in range(self.size):
+   35                 val = self.tiles[r][c]
+   36                 if val is None:
+   37                     self.buttons[r][c]["text"] = ""
+   38                     self.buttons[r][c]["bg"] = "black"
+   39                 else:
+   40                     self.buttons[r][c]["text"] = str(val)
+   41                     self.buttons[r][c]["bg"] = "white"
+   42                     self.buttons[r][c]["fg"] = "black"
+   43
+   44     def move_tile(self, r, c):
+   45         er, ec = self.empty_tile
+   46         if abs(er - r) + abs(ec - c) == 1:
+   47             self.tiles[er][ec], self.tiles[r][c] = self.tiles[r][c], self.tiles[er][ec]
+   48             self.empty_tile = (r, c)
+   49             self.update_ui()
+   50             if self.check_win():
+   51                 messagebox.showinfo("恭喜", "你完成拼圖了！")
+   52
+   53     def shuffle_tiles(self):
+   54         moves = [(-1,0),(1,0),(0,-1),(0,1)]
+   55         for _ in range(100):
+   56             er, ec = self.empty_tile
+   57             possible = []
+   58             for dr, dc in moves:
+   59                 nr, nc = er+dr, ec+dc
+   60                 if 0 <= nr < self.size and 0 <= nc < self.size:
+   61                     possible.append((nr, nc))
+   62             if possible:
+   63                 nr, nc = random.choice(possible)
+   64                 self.move_tile(nr, nc)
+   65
+   66     def check_win(self):
+   67         num = 1
+   68         for r in range(self.size):
+   69             for c in range(self.size):
+   70                 if r == self.size-1 and c == self.size-1:
+   71                     return self.tiles[r][c] is None
+   72                 if self.tiles[r][c] != num:
+   73                     return False
+   74                 num += 1
+   75         return True
+   76
+   77 if __name__ == "__main__":
+   78     root = tk.Tk()
+   79     game = PuzzleGame(root)
+   80     root.mainloop()
+   
